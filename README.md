@@ -1,3 +1,3 @@
-# docs
+# notes
 
-doc summary
+some point that i should to remember
