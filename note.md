@@ -1,5 +1,9 @@
 # note
 
+## jvm
+
+- 
+
 ## Spring
 
 - bean 生命周期
@@ -14,6 +18,10 @@
 - `@DateTimeFormat(pattern="yyyy-MM-dd")`
   - 必须引入**joda-time**才可以生效
   - 标注在实体的属性上，可以对Date类型进行参数绑定
+
+## mybatis
+
+- update 语句影响行数：需要jdbc连接参数设置`useAffectedRows=true`，并且 xml 里的 sql 一定要使用 update 标签包裹
 
 ## Json
 
