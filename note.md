@@ -9,6 +9,8 @@
 - bean 生命周期
   - AbstractApplicationContext.refresh
   - 扫描bean：通过 PathMatchingResourcePatternResolver 解析扫描路径里的 Resource
+- 依赖注入自身，避免自调用时切面失效
+  - 直接`@Autowired`或`@Resource`自身，并不一定有效，依赖注入进来的 bean 不一定被 `AnnotationAwareAspectJAutoProxyCreator` 代理过，没被代理的 bean 不会被 `AutowiredAnnotationBeanPostProcessor` 处理，导致没有进行依赖注入
 
 ## SpringMVC
 
