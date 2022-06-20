@@ -80,11 +80,13 @@
 
 ## mybatis
 
-- update 语句影响行数：需要jdbc连接参数设置`useAffectedRows=true`，并且 xml 里的 sql 一定要使用 update 标签包裹
+- update 语句影响行数：jdbc连接参数需要设置`useAffectedRows=true`，并且 xml 里的 sql 一定要使用 update 标签包裹
+- 每次执行SQL，mybatis 都会创建一个新的 Executor，Executor 中包含 Transaction，Transaction 中持有 Connection
 
 ## Json
 
 - jackson的`@JsonFormat(pattern="yyyy-MM-dd",timezone="GMT+8")`需要加上时区
+- long 类型的 json 字段在被序列化的时候有可能丢失精度
 
 ## mysql
 
