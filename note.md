@@ -53,7 +53,7 @@
     - 重新标记（阻塞）
     - 并发清除（并发）
   - G1 (garbage first)
-    - region：将内存划分为多个 region，每个 region 均可承担 eden、survivor、
+    - region：将内存划分为多个 region，每个 region 均可承担 eden、survivor、elder等角色
     - 初始标记
     - 并发标记
     - 最终标记
@@ -81,7 +81,7 @@
 ## mybatis
 
 - update 语句影响行数：jdbc连接参数需要设置`useAffectedRows=true`，并且 xml 里的 sql 一定要使用 update 标签包裹
-- 每次执行SQL，mybatis 都会创建一个新的 Executor，Executor 中包含 Transaction，Transaction 中持有 Connection
+- 每次执行SQL，mybatis 都会创建一个新的 Executor，Executor 中包含 Transaction，Transaction 中持有 Connection，如果有spring
 
 ## Json
 
@@ -98,5 +98,10 @@
       - 显式类型转化：比如 str_to_date()
       - 隐式类型转化：容易被忽视，比如 `shop_id varchar(255) & shopId(Long)` ，导致 `where shop_id = #{shopId}` 时索引失效
 - 为何使用 B+ tree 创建索引
-  - 树高度小，查询效率高
+  - 每页16k的情况下，
+  - 由于非叶子节点均用来存储索引，树高度小，查询效率高
   - 有序，方便从硬盘预加载数据
+
+## 全渠道运营项目
+
+## 预订系统
