@@ -61,6 +61,10 @@
 ## Spring
 
 - bean 生命周期
+  - prepare environment
+  - 创建 beanFactory
+  - refresh
+  - 初始化 BeanFactoryPostProcessor 如（ConfigurationClassPostProcessor）
   - AbstractApplicationContext.refresh
   - 扫描 bean：通过 PathMatchingResourcePatternResolver 解析扫描路径里的 Resource
   - 扫描的 bean 信息包装为 BeanDefinition
@@ -81,7 +85,7 @@
 ## mybatis
 
 - update 语句影响行数：jdbc连接参数需要设置`useAffectedRows=true`，并且 xml 里的 sql 一定要使用 update 标签包裹
-- 每次执行SQL，mybatis 都会创建一个新的 Executor，Executor 中包含 Transaction，Transaction 中持有 Connection，如果有spring
+- 每次执行SQL，mybatis 都会创建一个新的 Executor，Executor 中包含 Transaction，Transaction 中持有 Connection，如果有spring环境，则使用SpringManagedTransaction，会从TransactionManagerSynchronization中获取连接
 
 ## Json
 
