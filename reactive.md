@@ -98,31 +98,78 @@ System.out.println(sum); // 25
 @Test
 public void testPushBackpressure() throws InterruptedException {
     Flux.range(1, 1000)
-            .delayElements(Duration.ofMillis(200))
-            .subscribe(e -> {
-                LOGGER.info("subscribe:{}",e);
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            });
+        .delayElements(Duration.ofMillis(200))
+        .subscribe(e -> {
+            LOGGER.info("subscribe:{}",e);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        });
     Thread.sleep(100*1000);
 }
-//
+// 通过buffer方法
 @Test
 public void testBufferBackpressure() throws InterruptedException {
     Flux.range(1, 1000)
-            .delayElements(Duration.ofMillis(200))
-            .buffer(Duration.ofMillis(800))
-            .subscribe(e -> {
-                LOGGER.info("subscribe:{}",e);
-                try {
-                    Thread.sleep(2000);
-                } catch (InterruptedException e1) {
-                    e1.printStackTrace();
-                }
-            });
+        .buffer(Duration.ofMillis(800))
+        .subscribe(e -> {
+            LOGGER.info("subscribe:{}",e);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        });
+    Thread.sleep(100*1000);
+}
+// 通过take方法
+@Test
+public void testTakeBackpressure() throws InterruptedException {
+    Flux.range(1, 1000)
+        .take(Duration.ofMillis(4000))
+        .subscribe(e -> {
+            LOGGER.info("subscribe:{}",e);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e1) {
+                e1.printStackTrace();
+            }
+        });
     Thread.sleep(100*1000);
 }
 ```
+### Reactor
+
+#### 事件类型
+Subsription：订阅事件
+Value：值事件，发布者发布的单值事件
+Completion：流正常结束事件
+Error：流异常结束事件
+Cancel：取消订阅事件
+Request：请求事件，用于主动向发布者拉取数据
+
+
+#### Flux
+
+- flux.fromXxx()
+  - flux.fromArray()
+  - flux.fromIterable()
+- flux.create()：fluxSink 可异步生成任意数量的事件，不关注 backpressure ，也不关注订阅关系，即使订阅关系废弃，也能继续生产事件
+fluxSink 的实现必须监听取消事件，以及显式初始化 stream 闭包
+
+#### Mono
+最多生产一个事件，适用于一次响应的模型，比如：数据聚合、http请求响应，微服务调用等
+Mono只能生产一下三种事件：
+Value：值事件，发布者发布的单值事件
+Completion：流正常结束事件
+Error：流异常结束事件
+
+- Mono.fromXxx()
+  - Mono.fromCallable()
+  - Mono.fromFuture()
+- Mono.empty: 生成无值仅有完成事件的stream
+- Mono.defer: 用于构建懒初始化的发布者，仅有订阅者结交订阅关系后才会生成发布者实例
+- Mono.create: 构造MonoSink，用于生产一个“值事件”、“完成事件”、“异常事件”，同样也不关注 backpressure 和订阅关系
+
