@@ -30,9 +30,9 @@
 
 ## 特性
 
-- 事件驱动，避免回调地狱
+### 事件驱动，避免回调地狱
 
-### 事件类型
+#### 事件类型
 - Subsription：订阅事件
 - Value：值事件，发布者发布的单值事件
 - Completion：流正常结束事件
@@ -42,7 +42,7 @@
 
 ```java
 ```
-- 响应式，关注变化，并及时响应
+### 响应式，关注变化，并及时响应
 ```java
 // 普通java代码
 int value1 = 5;
@@ -60,9 +60,10 @@ System.out.println(sum); // 15
 value1 = 15;
 System.out.println(sum); // 25
 ```
-- 柔韧性(resilient)
-- 伸缩性(scalable)
-- 背压（backpressure）：用于解决发布者与订阅者之间处理效率不一致而导致的事件堆积，内存溢出等问题
+### 柔韧性(resilient)
+### 伸缩性(scalable)
+### 背压（backpressure）：
+用于解决发布者与订阅者之间处理效率不一致而导致的事件堆积，内存溢出等问题
   - pull模式：即订阅方实现 backpressure
 ```java
 @Test
@@ -151,8 +152,8 @@ public void testTakeBackpressure() throws InterruptedException {
 
 ### 构造流，消费流
 
-
 #### Flux
+- flux.just()：最简单的构造流方式
 - flux.fromXxx()
   - flux.fromArray()
   - flux.fromIterable()
@@ -169,13 +170,15 @@ Mono只能生产一下三种事件：Value、Completion、Error
 - Mono.defer: 用于构建懒初始化的发布者，仅有订阅者结交订阅关系后才会生成发布者实例
 - Mono.create: 构造MonoSink，用于生产一个“值事件”、“完成事件”、“异常事件”，同样也不关注 backpressure 和订阅关系
 
+#### Processor
+
 #### 冷发布、热发布
 - 冷发布的数据是在订阅之后才产生的，如果没有订阅者，则不会产生数据
  - Flux 和 Mono 生成的发布者，即是冷发布
 - 热发布，不论是否存在订阅关系，生产者都会产生数据，比如 processor 作为 publisher，新的订阅者也能收到已经发布过的数据
  - 某些 processor 比如 UnicastProcessor 转化的生产者便可以热发布
 
-### 操作流（operator）
+### 变换流（operator）
 
 #### 数据过滤
 - filter
@@ -244,6 +247,7 @@ fibonacciGenerator.take(10).collectList().subscribe(t -> {
     System.out.println(t);
 });
 ```
+
 - collectList：将流中数据收集为list集合
 - collectSortedList：将流中数据收集为有序的list集合
 - collectMap：将流中数据收集为map
@@ -269,4 +273,63 @@ fibonacciGenerator.take(10).reduce((x, y) -> x + y).subscribe(t -> {
 - startWith：将其他流拼接再当前流之前合并
 
 ## SpringWebFlux
+SpringWebFlux支持两种构建 reactive 应用的模式，一是注解形式，二是函数式配置
+
+![springWebFlux](./img/springwebflux.png)
+
+### Jar包依赖
+```groove
+dependencies {
+    compile 'org.springframework.boot:spring-boot-starter-webflux'    
+}
+```
+### 注解形式
+完全兼容 SpringWebMvc 的所有注解，诸如：`@RestController`、`@RequestMapping`、`@ResponseBody`
+```java
+@EnableWebFlux
+@SpringBootApplication
+public class ReactorMain { 
+    public static void main(String[] args) {
+        SpringApplication.run(ReactorMain.class, args);
+    }
+}
+
+@RestController
+public class ReactiveController {
+    @GetMapping("/fibonacci")
+    @ResponseBody 
+    public Publisher<Long>fibonacciSeries() { 
+        Flux<Long> fibonacciGenerator = Flux.generate(() -> Tuples.of(0L, 1L), 
+        (state, sink) -> {
+            if (state.getT1() < 0){
+                sink.complete();
+            } else {
+                sink.next(state.getT1());
+            }
+            return Tuples.of(state.getT2(), state.getT1() + state.getT2()); 
+        });
+        return fibonacciGenerator; 
+    }
+}
+```
+### 函数式配置
+类似于在`@Configuration`中代码式配置 Bean
+```java
+@Configuration
+public void WebFluxConfig {
+
+    @Bean
+    RouterFunction<ServerResponse> fibonacciEndpoint() {
+        Flux<Long> fibonacciGenerator = Flux.generate(() -> Tuples.of(0L, 1L),
+        (state, sink) -> {
+            if (state.getT1() < 0) sink.complete();
+            else sink.next(state.getT1());
+            return Tuples.of(state.getT2(), state.getT1() + state.getT2());
+        });
+        RouterFunction<ServerResponse> fibonacciRoute = RouterFunctions.route(RequestPredicates.path("/fibonacci"), request -> ServerResponse.ok()
+            .body(BodyInserters.fromPublisher(fibonacciGenerator, Long.class)));
+        return fibonacciRoute;
+    }
+}
+```
 
