@@ -24,10 +24,22 @@
 - 第四代
 - 第五代
 
+## 数据流
+
+![数据流](./img/reactive-stream.png)
 
 ## 特性
 
 - 事件驱动，避免回调地狱
+
+### 事件类型
+- Subsription：订阅事件
+- Value：值事件，发布者发布的单值事件
+- Completion：流正常结束事件
+- Error：流异常结束事件
+- Cancel：取消订阅事件
+- Request：请求事件，用于主动向发布者拉取数据
+
 ```java
 ```
 - 响应式，关注变化，并及时响应
@@ -48,8 +60,8 @@ System.out.println(sum); // 15
 value1 = 15;
 System.out.println(sum); // 25
 ```
-- 柔韧性
-- 伸缩性
+- 柔韧性(resilient)
+- 伸缩性(scalable)
 - 背压（backpressure）：用于解决发布者与订阅者之间处理效率不一致而导致的事件堆积，内存溢出等问题
   - pull模式：即订阅方实现 backpressure
 ```java
@@ -138,14 +150,6 @@ public void testTakeBackpressure() throws InterruptedException {
 ## Reactor
 
 ### 构造流，消费流
-
-#### 事件类型
-Subsription：订阅事件
-Value：值事件，发布者发布的单值事件
-Completion：流正常结束事件
-Error：流异常结束事件
-Cancel：取消订阅事件
-Request：请求事件，用于主动向发布者拉取数据
 
 
 #### Flux
