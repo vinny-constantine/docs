@@ -24,24 +24,13 @@
 - 第四代
 - 第五代
 
+
 ## 数据流
 
 ![数据流](./img/reactive-stream.png)
 
 ## 特性
 
-### 事件驱动，避免回调地狱
-
-#### 事件类型
-- Subsription：订阅事件
-- Value：值事件，发布者发布的单值事件
-- Completion：流正常结束事件
-- Error：流异常结束事件
-- Cancel：取消订阅事件
-- Request：请求事件，用于主动向发布者拉取数据
-
-```java
-```
 ### 响应式，关注变化，并及时响应
 ```java
 // 普通java代码
@@ -63,6 +52,33 @@ System.out.println(sum); // 25
 ### 柔韧性(resilient)
 ### 伸缩性(scalable)
 
+### 事件驱动，避免回调地狱
+基于发布订阅模型
+
+#### 事件类型
+- 订阅者消费
+  - Subsription：订阅事件，订阅成功事件
+  - Value：值事件，发布者发布的单值事件
+  - Completion：流正常结束事件
+  - Error：流异常结束事件
+- 发布者消费
+  - Cancel：取消订阅事件，订阅者取消订阅
+  - Request：请求事件，用于主动向发布者拉取数据
+
+```java
+// 创建发布者
+Flux<Long> fibonacciGenerator = FluxDemo.buildFibonacciGenerator();
+// 通过lambda表达式来创建订阅者，消费 Value事件，异常事件，完成事件，订阅事件，返回的 disposable 可用于取消订阅
+Disposable disposable = fibonacciGenerator.take(10).subscribe(
+    t -> System.out.println("consuming " + t) // Value事件
+    , e -> e.printStackTrace() // 异常事件
+    , () -> System.out.println("Finished") // 完成事件
+    , s -> System.out.println("Subscribed :" + s) // 订阅事件
+);
+// 订阅者取消订阅，产生取消事件
+disposable.dispose();
+```
+
 
 ## Reactor
 
@@ -74,7 +90,27 @@ System.out.println(sum); // 25
   - flux.fromArray()
   - flux.fromIterable()
 - flux.create()：fluxSink 可异步生成任意数量的事件，不关注 backpressure ，也不关注订阅关系，即使订阅关系废弃，也能继续生产事件fluxSink 的实现必须监听取消事件，以及显式初始化 stream 闭包
-
+```java
+public static Flux<Long> buildFibonacciGenerator() {
+    return Flux.create(e -> {
+        long current = 1, prev = 0;
+        // 订阅“取消事件”
+        e.onDispose(() -> {
+            System.out.println("******* Stop Received ****** ");
+        });
+        // 生成斐波那契数列值，只要当前值未超过Long.MAX_VALUE，就继续生产，直到越界变为负数
+        while (current > 0) {
+            // 发布 “Value事件”
+            e.next(current);
+            System.out.println("generated " + current);
+            current = current + prev;
+            prev = current - prev;
+        }
+        // 发布“完成事件”
+        e.complete();
+    });
+}
+```
 
 #### Mono
 最多生产一个事件，适用于一次响应的模型，比如：数据聚合、http请求响应，微服务调用等
@@ -86,7 +122,63 @@ Mono只能生产一下三种事件：Value、Completion、Error
 - Mono.defer: 用于构建懒初始化的发布者，仅有订阅者结交订阅关系后才会生成发布者实例
 - Mono.create: 构造MonoSink，用于生产一个“值事件”、“完成事件”、“异常事件”，同样也不关注 backpressure 和订阅关系
 
+#### BaseSubscriber
+用于创建订阅者
+```java
+// 继承BaseSubscriber来创建订阅者，并实现五种钩子函数
+BaseSubscriber<Long> fibonacciSubscriber = new BaseSubscriber<Long>() {
+    @Override
+    protected void hookOnSubscribe(Subscription subscription) {}
+    @Override
+    protected void hookOnNext(Long value) {}
+    @Override
+    protected void hookOnComplete() {}
+    @Override
+    protected void hookOnError(Throwable throwable) {}
+    @Override
+    protected void hookOnCancel() {}
+};
+// 结交订阅关系
+fibonacciGenerator.subscribe(fibonacciSubscriber);
+// 订阅者主动拉取10个Value事件，触发 “Request事件”
+fibonacciSubscriber.request(10);
+// 可忽略backpressure
+fibonacciSubscriber.requestUnbounded();
+```
+
 #### Processor
+特殊的流容器
+
+##### DirectProcessor
+DirectProcessor 无法处理背压，一旦超出订阅者所需事件数，则抛出异常，一旦DirectProcessor收到完成事件，则不再接收任何 Value事件
+```java
+@Test
+public void testBackpressure() {
+    // DirectProcessor 无法处理背压，一旦超出订阅者所需事件数，则抛出异常
+    DirectProcessor<Long> data = DirectProcessor.create();
+    data.subscribe(t -> System.out.println(t), e -> e.printStackTrace(), () -> System.out.println("Finished"),
+        s -> s.request(1));
+    // onNext 来发布 “Value事件”
+    data.onNext(10L);
+    data.onNext(11L);
+    data.onNext(12L);
+}
+@Test
+public void testDirectProcessor() {
+    // 一旦DirectProcessor收到“完成事件”，则不再接收任何 “Value事件”
+    DirectProcessor<Long> data = DirectProcessor.create();
+    // 新增订阅者1
+    data.subscribe(t -> System.out.println(t), e -> e.printStackTrace(), () -> System.out.println("Finished 1"));
+    // 发布“Value事件”
+    data.onNext(10L);
+    // 发布“完成事件”
+    data.onComplete();
+    // 新增订阅者2
+    data.subscribe(t -> System.out.println(t), e -> e.printStackTrace(), () -> System.out.println("Finished 2"));
+    // 再次发布“Value事件”，
+    data.onNext(12L);
+}
+```
 
 #### 冷发布、热发布
 - 冷发布的数据是在订阅之后才产生的，如果没有订阅者，则不会产生数据
@@ -128,6 +220,7 @@ fibonacciGenerator.skipUntil(t -> t > 100).subscribe(t -> {
 - ignoreElements：忽略所有元素
 - single：获取单个元素
 - elmentAt：获取某个位置的元素
+
 
 #### 数据映射
 - map：将流中的每一个值都应用到映射器中
@@ -258,7 +351,6 @@ public void testBufferWithDefinateSize() {
 
 //[2880067194370816120, 4660046610375530309, 7540113804746346429]
 ```
-
 
 #### 背压（backpressure）：
 
