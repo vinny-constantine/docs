@@ -177,6 +177,20 @@ public void testDirectProcessor() {
 }
 ```
 
+##### UnicastProcessor
+UnicastProcessor 支持背压，内部会通过一个队列来缓存未被消费的事件，但仅支持一个订阅者
+```java
+@Test
+public void testUnicastProcessor() {
+    UnicastProcessor<Long> data = UnicastProcessor.create();
+    data.subscribe(t -> {
+        System.out.println(t);
+    });
+    // sink 中的方法是线程安全的
+    data.sink().next(10L);
+}
+```
+
 ##### TopicProcessor
 TopicProcessor 支持多个订阅者，会交付所有事件给每一个订阅者（类似于广播模式），通过事件循环机制实现，异步并发方式交付事件，可用 RingBuffer 来支持背压
 
