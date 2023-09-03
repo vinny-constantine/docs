@@ -40,7 +40,9 @@ System.out.println(sum); // 15
 value1 = 15;
 System.out.println(sum); // 25
 ```
-### 柔韧性(resilient)
+### 容错性(resilient)
+Reactive 原则要求系统能够在出现异常时也能够及时响应，并优雅地处理异常
+
 ### 伸缩性(scalable)
 
 ### 事件驱动，避免回调地狱
@@ -440,88 +442,124 @@ public void testWindowsFixedSize() {
 }
 ```
 
-
-#### 背压（backpressure）：
-
-- pull模式：即订阅方实现 backpressure
+#### 采样（Sample）：
+可实现节流，在一个时间周期内，只允许最后一个事件被发布
 ```java
 @Test
-public void testPullBackpressure(){
-    Flux.just(1, 2, 3, 4)
-        .subscribe(new Subscriber<Integer>() {
-            private Subscription s;
-            int onNextAmount;
-            @Override
-            public void onSubscribe(Subscription s) {
-                this.s = s;
-                s.request(2);
-            }
-            @Override
-            public void onNext(Integer integer) {
-                System.out.println(integer);
-                onNextAmount++;
-                if (onNextAmount % 2 == 0) {
-                    s.request(2);
-                }
-            }
-            @Override
-            public void onError(Throwable t) {}
-            @Override
-            public void onComplete() {}
-        });
-    try {
-        Thread.sleep(10*1000);
-    } catch (InterruptedException e) {
-        e.printStackTrace();
-    }
+public void testSample() throws Exception {
+    Flux<Long> fibonacciGenerator = buildFibonacciGenerator();
+    CountDownLatch latch = new CountDownLatch(1);
+    // 每个事件延迟100ms发布，以1s为周期，每个周期内只采样最后一个事件
+    fibonacciGenerator.delayElements(Duration.ofMillis(100L))
+        .sample(Duration.ofSeconds(1))
+//      .sampleFirst(Duration.ofSeconds(1))// 每个周期内只采样第一个事件
+        .subscribe(x -> System.out.println(x), e -> latch.countDown(), () -> latch.countDown());
+    latch.await();
 }
 ```
-- push模式：即发布方实现 backpressure
+
+#### 背压（backpressure）：
+背压，当生产者发布的事件超出订阅者所需时，Reactor会控制事件的交付，此时有多种溢出策略可选择
+- BUFFER：将未交付的事件缓存，当订阅者再次请求时再交付，这是默认策略
+- IGNORE：忽略背压，持续向订阅者交付事件
+- DROP：丢弃未交付的事件
+- LATEST：新的事件会缓存在旧事件前面，订阅者总是先消费最新的事件
+- ERROR：直接抛出异常
+
 ```java
-// 通过delayElements
 @Test
-public void testPushBackpressure() throws InterruptedException {
-    Flux.range(1, 1000)
-        .delayElements(Duration.ofMillis(200))
-        .subscribe(e -> {
-            LOGGER.info("subscribe:{}",e);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
-        });
-    Thread.sleep(100*1000);
+public void testBackPressure() throws Exception {
+    
+    Flux<Integer> numberGenerator = Flux.create(x -> {
+        System.out.println("Requested Events :" + x.requestedFromDownstream());
+        int number = 1;
+        // 订阅者仅需要一个事件，但 publisher 发布100个事件
+        while (number < 100) {
+            x.next(number);
+            number++;
+        }
+        System.out.println("=======complete");
+        x.complete();
+    });
+    CountDownLatch latch = new CountDownLatch(1);
+    numberGenerator.subscribe(new BaseSubscriber<Integer>() {
+        @Override
+        protected void hookOnSubscribe(Subscription subscription) {
+            // 仅需要一个事件
+            request(1);
+        }
+
+        @Override
+        protected void hookOnNext(Integer value) {
+            System.out.println(value);
+        }
+
+        @Override
+        protected void hookOnError(Throwable throwable) {
+            throwable.printStackTrace();
+            System.out.println("=============countDown");
+            latch.countDown();
+        }
+
+        @Override
+        protected void hookOnComplete() {
+            // 发布者发布的事件超出订阅者所需，多余事件被Reactor框架缓存在队列中，因此 complete 事件被阻塞，无法消费到
+            System.out.println("=============countDown");
+            latch.countDown();
+        }
+    });
+    // 因为始终消费不到“ERROR事件”和“COMPLETE事件”，因此无法 countDown，此处测试失败
+    assertTrue(latch.await(1L, TimeUnit.SECONDS));
 }
-// 通过buffer方法
+
 @Test
-public void testBufferBackpressure() throws InterruptedException {
-    Flux.range(1, 1000)
-        .buffer(Duration.ofMillis(800))
-        .subscribe(e -> {
-            LOGGER.info("subscribe:{}",e);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
-            }
-        });
-    Thread.sleep(100*1000);
+public void testErrorBackPressure() throws Exception {
+    // 使用Error策略
+    Flux<Integer> numberGenerator = Flux.create(x -> {
+        System.out.println("Requested Events :" + x.requestedFromDownstream());
+        int number = 1;
+        while (number < 100) {
+            x.next(number);
+            number++;
+        }
+        x.complete();
+    }, FluxSink.OverflowStrategy.ERROR);
+    // 由于生成者发布的事件数量超出订阅者所需，在 ERROR 策略下，程序直接抛出异常
+    numberGenerator.subscribe(new BaseSubscriber<Integer>() {
+        @Override
+        protected void hookOnSubscribe(Subscription subscription) {
+            request(1);
+        }
+    });
 }
-// 通过take方法
+
 @Test
-public void testTakeBackpressure() throws InterruptedException {
-    Flux.range(1, 1000)
-        .take(Duration.ofMillis(4000))
-        .subscribe(e -> {
-            LOGGER.info("subscribe:{}",e);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e1) {
-                e1.printStackTrace();
+public void testBackPressureOps() throws Exception {
+    Flux<Integer> numberGenerator = Flux.create(x -> {
+        System.out.println("Requested Events :" + x.requestedFromDownstream());
+        int number = 1;
+        while (number < 100) {
+            x.next(number);
+            number++;
+        }
+        x.complete();
+    });
+    CountDownLatch latch = new CountDownLatch(1);
+    // 订阅前变更背压策略为 DROP，超出订阅者所需的事件均被丢弃
+    numberGenerator.onBackpressureDrop(x -> System.out.println("Dropped :" + x))
+//            .onBackpressureLatest()
+//            .onBackpressureError()
+//            .onBackpressureBuffer(100)
+//            .onBackpressureBuffer(100, BufferOverflowStrategy.DROP_LATEST) // 当缓冲区满了之后，丢弃最新的事件
+//            .onBackpressureBuffer(100, BufferOverflowStrategy.DROP_OLDEST) // 当缓冲区满了之后，丢弃最旧的事件
+//            .onBackpressureBuffer(100, BufferOverflowStrategy.ERROR) // 当缓冲区满了之后，抛出异常
+        .subscribe(new BaseSubscriber<Integer>() {
+            @Override
+            protected void hookOnSubscribe(Subscription subscription) {
+                request(1);
             }
         });
-    Thread.sleep(100*1000);
+    assertTrue(latch.await(1L, TimeUnit.SECONDS));
 }
 ```
 
