@@ -153,7 +153,7 @@ fibonacciSubscriber.requestUnbounded();
 DirectProcessor 无法处理背压，一旦超出订阅者所需事件数，则抛出异常，一旦DirectProcessor收到完成事件，则不再接收任何 Value事件
 ```java
 @Test
-public void testBackpressure() {
+public void testDirectProcessor() {
     // DirectProcessor 无法处理背压，一旦超出订阅者所需事件数，则抛出异常
     DirectProcessor<Long> data = DirectProcessor.create();
     data.subscribe(t -> System.out.println(t), e -> e.printStackTrace(), () -> System.out.println("Finished"),
@@ -162,9 +162,6 @@ public void testBackpressure() {
     data.onNext(10L);
     data.onNext(11L);
     data.onNext(12L);
-}
-@Test
-public void testDirectProcessor() {
     // 一旦DirectProcessor收到“完成事件”，则不再接收任何 “Value事件”
     DirectProcessor<Long> data = DirectProcessor.create();
     // 新增订阅者1
@@ -173,10 +170,75 @@ public void testDirectProcessor() {
     data.onNext(10L);
     // 发布“完成事件”
     data.onComplete();
-    // 新增订阅者2
+    // 新增订阅者2，可消费到“完成事件”
     data.subscribe(t -> System.out.println(t), e -> e.printStackTrace(), () -> System.out.println("Finished 2"));
-    // 再次发布“Value事件”，
+    // 再次发布“Value事件”，该事件不会被任何订阅者消费到
     data.onNext(12L);
+}
+```
+
+##### TopicProcessor
+TopicProcessor 支持多个订阅者，会交付所有事件给每一个订阅者（类似于广播模式），通过事件循环机制实现，异步并发方式交付事件，可用 RingBuffer 来支持背压
+
+```java
+@Test
+public void testTopicProcessor() {
+    // RingBuffer 的等待策略分为：
+    // 1. blocking（阻塞，适用于对吞吐量和低延迟要求不高，不如CPU资源重要的场景）
+    // 2. busySpin（自旋，消耗CPU资源来避免系统调用，非常适合线程可绑定CPU核心的场景）等
+    TopicProcessor<Long> data = TopicProcessor.<Long>builder()
+        .executor(Executors.newFixedThreadPool(2))
+        .waitStrategy(WaitStrategy.busySpin())
+        .bufferSize(8)
+        .build();
+    data.subscribe(t -> {
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("订阅者1：========" + t);
+    });
+    data.subscribe(t -> {
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("订阅者2：========" + t);
+    });
+    FluxSink<Long> sink = data.sink();
+    for (int i = 0; i < 20; i++) {
+        sink.next((long) i);
+    }
+    // 主线程等待
+    try {
+        Thread.sleep(10000);
+    } catch (InterruptedException e) {
+        e.printStackTrace();
+    }
+}
+```
+
+##### WorkQueueProcessor
+WorkQueueProcessor 支持多个订阅者，但事件会被所有订阅者瓜分消费（类似mq集群模式），通过轮询来交付事件给对应订阅者，可用 RingBuffer 来支持背压
+```java
+@Test
+public void testWorkQueueProcessor() {
+    // 设置缓冲区为8，使用RingBuffer的block策略，来等待订阅者消费
+    WorkQueueProcessor<Long> data = WorkQueueProcessor.<Long>builder()
+        .executor(Executors.newFixedThreadPool(2))
+        .waitStrategy(WaitStrategy.blocking())
+        .bufferSize(8)
+        .build();
+    data.subscribe(t -> System.out.println("1. " + t));
+    data.subscribe(t -> System.out.println("2. " + t));
+    FluxSink<Long> sink = data.sink();
+    sink.next(10L);
+    sink.next(11L);
+    sink.next(12L);
+    sink.next(13L);
+    sink.next(14L);
 }
 ```
 
