@@ -1,19 +1,14 @@
-# reactive
+# Reactive
 
 
 ## 概念
 - Reactive 的宣言是什么？
   - message driven，reactive 系统应该由松耦合的组件构成，并且它们依赖异步的事件驱动
-  - responsive，reactive 系统一定要各自响应用户输入
+  - responsive，reactive 系统需要各自响应用户输入
   - resilient，reactive 系统需要将异常隔离在各自系统内部
-  - scalable，reactive 系统一定具备可伸缩性，部署多个副本来应对复杂的负载环境
-
-- Reactive Extensions 是什么？
-协助构建异步执行、事件驱动的网络交互的类库即为reactive extension，如 ReactiveX
-
-- Reactive Stream specification 的关注点是什么？
-- Reactive Stream 是基于什么准则完成的？
+  - scalable，reactive 系统具备可伸缩性，可部署多个副本来应对复杂的负载环境
 - Reactor Framework 最突出的特色是什么？
+- SpringWebFlux 企业级的 Reactor Framwork 实现
 
 
 ## 发展历程
@@ -24,10 +19,6 @@
 - 第四代
 - 第五代
 
-
-## 数据流
-
-![数据流](./img/reactive-stream.png)
 
 ## 特性
 
@@ -55,7 +46,15 @@ System.out.println(sum); // 25
 ### 事件驱动，避免回调地狱
 基于发布订阅模型
 
-#### 事件类型
+
+
+## Reactor
+
+### 数据流
+
+![数据流](./img/reactive-stream.png)
+
+### 事件类型
 - 订阅者消费
   - Subsription：订阅事件，订阅成功事件
   - Value：值事件，发布者发布的单值事件
@@ -78,9 +77,6 @@ Disposable disposable = fibonacciGenerator.take(10).subscribe(
 // 订阅者取消订阅，产生取消事件
 disposable.dispose();
 ```
-
-
-## Reactor
 
 ### 构造流，消费流
 
@@ -108,6 +104,19 @@ public static Flux<Long> buildFibonacciGenerator() {
         }
         // 发布“完成事件”
         e.complete();
+    });
+}
+```
+- flux.generate()：
+```java
+public static Flux<Long> buildFibonacciGenerator() {
+    return Flux.generate(() -> Tuples.of(0L, 1L), (state, sink) -> {
+        // 生成斐波那契数列值，只要当前值未超过Long.MAX_VALUE，就继续生产，直到越界变为负
+        // 发布“完成事件”
+        if (state.getT1() < 0) sink.complete();
+        // 发布 “Value事件”
+        else sink.next(state.getT1());
+        return Tuples.of(state.getT2(), state.getT1() + state.getT2());
     });
 }
 ```
@@ -258,9 +267,9 @@ public void testWorkQueueProcessor() {
 
 #### 冷发布、热发布
 - 冷发布的数据是在订阅之后才产生的，如果没有订阅者，则不会产生数据
- - Flux 和 Mono 生成的发布者，即是冷发布
+  - Flux 和 Mono 生成的发布者，即是冷发布
 - 热发布，不论是否存在订阅关系，生产者都会产生数据，比如 processor 作为 publisher，新的订阅者也能收到已经发布过的数据
- - 某些 processor 比如 UnicastProcessor 转化的生产者便可以热发布
+  - 某些 processor 比如 UnicastProcessor 转化的生产者便可以热发布
 
 ### 变换流（operator）
 
@@ -366,11 +375,7 @@ fibonacciGenerator.take(10).reduce((x, y) -> x + y).subscribe(t -> {
 ```java
 @Test
 public void testGrouping() {
-    Flux<Long> fibonacciGenerator = Flux.generate(() -> Tuples.of(0L, 1L), (state, sink) -> {
-        if (state.getT1() < 0) sink.complete();
-        else sink.next(state.getT1());
-        return Tuples.of(state.getT2(), state.getT1() + state.getT2());
-    });
+    Flux<Long> fibonacciGenerator = buildFibonacciGenerator();
     // 取斐波那契数列前20，按可被2、3、5、7整除来分组，并打印结果
     fibonacciGenerator.take(20).groupBy(i -> {
         List<Integer> divisors = Arrays.asList(2, 3, 5, 7);
@@ -395,15 +400,11 @@ public void testGrouping() {
 ```
 
 #### 缓冲区（buffer）：
-将`Flux<T>`生成的事件聚合为`List<T>`，一并发布，不会改变顺序性
+将`Flux<T>`生成的事件分割后聚合为`List<T>`，一并发布，不会改变顺序性
 ```java
 @Test
 public void testBufferWithDefinateSize() {
-    Flux<Long> fibonacciGenerator = Flux.generate(() -> Tuples.<Long, Long>of(0L, 1L), (state, sink) -> {
-        if (state.getT1() < 0) sink.complete();
-        else sink.next(state.getT1());
-        return Tuples.of(state.getT2(), state.getT1() + state.getT2());
-    });
+    Flux<Long> fibonacciGenerator = buildFibonacciGenerator();
     // 将斐波那契数列前100，每10个放入一个缓冲区
     fibonacciGenerator.take(100).buffer(10).subscribe(x -> System.out.println(x));
 }
@@ -427,6 +428,18 @@ public void testBufferWithDefinateSize() {
 
 //[2880067194370816120, 4660046610375530309, 7540113804746346429]
 ```
+
+#### 窗口化（window）：
+与缓冲区类似，能够将`Flux<T>`生成的事件分割，但聚合的结果为Processor，每个分割得到的Processor都能重新发布订阅事件
+```java
+@Test
+public void testWindowsFixedSize() {
+    Flux<Long> fibonacciGenerator = buildFibonacciGenerator();
+    // 将 Flux<T> 流每10个事件为一组分割为window，每个window都是一个 UnicastProcessor，所以需要用 concatMap 或 flatMap 将其组合起来，再订阅消费
+    fibonacciGenerator.window(10).concatMap(x -> x).subscribe(x -> System.out.print(x + " "));
+}
+```
+
 
 #### 背压（backpressure）：
 
@@ -574,3 +587,6 @@ public void WebFluxConfig {
 }
 ```
 
+## 性能
+
+### 与 SpringWebMvc + jdbc 比较
