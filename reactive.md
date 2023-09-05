@@ -702,9 +702,13 @@ spring.r2dbc.properties.port=5432
 将SpringWebMvc + jpa-jdbc + jdbc-mysql 项目与 SpringWebFlux + spring-data-r2dbc + r2dbc-mysql 项目分别按不同连接池配置打成6个包，通过ubuntu 的 taskset 来绑定cpu核心运行项目，同时通过 wrk 与 /proc/smaps 来收集项目的延迟率、吞吐量、cpu占用及内存占用等指标，通过 pandas 分析数据，再使用pyplot绘制成图形
 
 #### 延迟
+![延迟](./img/Pic-延迟率.png)
 
 #### 吞吐量
+![吞吐量](./img/Pic-吞吐量.png)
 
 #### cpu占用
+![cpu占用](./img/Pic-CPU使用率.png)
 
 #### 内存占用
+![内存占用](./img/Pic-内存占用率.png)
