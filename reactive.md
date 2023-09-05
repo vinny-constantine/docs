@@ -1,16 +1,5 @@
 # Reactive
 
-
-## 概念
-- Reactive 的宣言是什么？
-  - message driven，reactive 系统应该由松耦合的组件构成，并且它们依赖异步的事件驱动
-  - responsive，reactive 系统需要各自响应用户输入
-  - resilient，reactive 系统需要将异常隔离在各自系统内部
-  - scalable，reactive 系统具备可伸缩性，可部署多个副本来应对复杂的负载环境
-- Reactor Framework 最突出的特色是什么？
-- SpringWebFlux 企业级的 Reactor Framwork 实现
-
-
 ## 发展历程
 
 - 第一代
@@ -22,7 +11,11 @@
 
 ## 特性
 
-### 响应式，关注变化，并及时响应
+### 异步非阻塞，事件驱动，避免回调地狱
+传统servlet api 一个线程处理一个请求的模型，会阻塞处理线程直到接口响应数据，当并发变高时，就需要servlet容器创建大量的线程，可能导致线程池耗尽，内存告警等问题，而 reactive framework 基于事件驱动的架构，建立的发布订阅模型，能够异步处理业务逻辑，用更少的线程数支撑更大的并发量。
+
+### 响应式（responsive）
+Reactive 标准要求系统关注变化，及时响应用户输入
 ```java
 // 普通java代码
 int value1 = 5;
@@ -41,14 +34,10 @@ value1 = 15;
 System.out.println(sum); // 25
 ```
 ### 容错性(resilient)
-Reactive 原则要求系统能够在出现异常时也能够及时响应，并优雅地处理异常
+Reactive 标准要求系统能够在出现异常时也能够及时响应，并优雅处理
 
 ### 伸缩性(scalable)
-
-### 事件驱动，避免回调地狱
-基于发布订阅模型
-
-
+Reactive 标准要求系统具备可伸缩性，可部署多个副本来应对复杂的负载环境（微服务，容器化部署，CI、CD来保证）
 
 ## Reactor
 
@@ -83,7 +72,7 @@ disposable.dispose();
 ### 构造流，消费流
 
 #### Flux
-- flux.just()：最简单的构造流方式
+- flux.just()：最简单的构造流方式，flux.just(1,2,3,4)
 - flux.fromXxx()
   - flux.fromArray()
   - flux.fromIterable()
@@ -624,7 +613,99 @@ public void WebFluxConfig {
     }
 }
 ```
+### SpringWebFlux + spring-data-r2dbc + r2dbc-mysql  整合
+
+```xml
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.7.14</version>
+    <relativePath/>
+</parent>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-webflux</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-data-r2dbc</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.r2dbc</groupId>
+    <artifactId>r2dbc-pool</artifactId>
+</dependency>
+<dependency>
+    <groupId>io.asyncer</groupId>
+    <artifactId>r2dbc-mysql</artifactId>
+    <version>0.9.3</version>
+</dependency>
+```
+
+```java
+@Configuration
+@EnableR2dbcRepositories
+class DatabaseConfiguration extends AbstractR2dbcConfiguration {
+    @Resource
+    private R2dbcProperties r2dbcProperties;
+
+    @Bean
+    public ConnectionFactory connectionFactory() {
+        return ConnectionFactoryBuilder.withOptions(
+            ConnectionFactoryOptions.builder()
+                .from(ConnectionFactoryOptions.parse(r2dbcProperties.getUrl()))
+                .option(MAX_SIZE, r2dbcProperties.getPool().getMaxSize())
+                .option(USER, r2dbcProperties.getUsername())
+                .option(PASSWORD, r2dbcProperties.getPassword())
+                .option(SSL, Optional.ofNullable(r2dbcProperties.getProperties().get("ssl"))
+                    .map(Boolean::parseBoolean)
+                    .orElse(false))
+                .build()
+                .mutate()).build();
+
+    @Bean
+    ReactiveTransactionManager transactionManager(ConnectionFactory connectionFactory) {
+        return new R2dbcTransactionManager(connectionFactory);
+    }
+
+    @Bean
+    public ConnectionFactoryInitializer initializer(ConnectionFactory connectionFactory) {
+
+        ConnectionFactoryInitializer initializer = new ConnectionFactoryInitializer();
+        initializer.setConnectionFactory(connectionFactory);
+        CompositeDatabasePopulator populator = new CompositeDatabasePopulator();
+        ClassPathResource cpr = new ClassPathResource("schema.sql");
+        if (cpr.exists()) {
+            populator.addPopulators(new ResourceDatabasePopulator(cpr));
+        }
+        initializer.setDatabasePopulator(populator);
+        return initializer;
+    }
+}
+```
+
+```conf
+# port
+server.port=8081
+# mysql
+spring.r2dbc.url=r2dbc:mysql://localhost:3306/reactive
+spring.r2dbc.name=reactive
+spring.r2dbc.username=root
+spring.r2dbc.password=qwer1234
+spring.r2dbc.pool.max-size=100
+spring.r2dbc.pool.initial-size=30
+spring.r2dbc.properties.host=localhost
+spring.r2dbc.properties.port=5432
+```
 
 ## 性能
 
 ### 与 SpringWebMvc + jdbc 比较
+将SpringWebMvc + jpa-jdbc + jdbc-mysql 项目与 SpringWebFlux + spring-data-r2dbc + r2dbc-mysql 项目分别按不同连接池配置打成6个包，通过ubuntu 的 taskset 来绑定cpu核心运行项目，同时通过 wrk 与 /proc/smaps 来收集项目的延迟率、吞吐量、cpu占用及内存占用等指标，通过 pandas 分析数据，再使用pyplot绘制成图形
+
+#### 延迟
+
+#### 吞吐量
+
+#### cpu占用
+
+#### 内存占用
