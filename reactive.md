@@ -305,6 +305,7 @@ RomanNumber numberConvertor= new RomanNumber();
 fibonacciGenerator.skip(1).take(10).map(t-> numberConvertor.toRomanNumeral(t.intValue())).subscribe(t -> {
     System.out.println(t);
 });
+```
 
 - flatMap：将多个流展开合并为一个流
 ```java
