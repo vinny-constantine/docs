@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.14</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.example.reacitve</groupId>
+    <artifactId>sb_webflux_r2dbcpool_r2dbc</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+
+    <properties>
+        <java.version>8</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-r2dbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!--    postgresql    -->
+        <!--        <dependency>-->
+        <!--            <groupId>org.postgresql</groupId>-->
+        <!--            <artifactId>postgresql</artifactId>-->
+        <!--            <scope>runtime</scope>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.postgresql</groupId>-->
+        <!--            <artifactId>r2dbc-postgresql</artifactId>-->
+        <!--            <scope>runtime</scope>-->
+        <!--        </dependency>-->
+        <!--    postgresql    -->
+
+
+        <!-- mysql -->
+<!--        <dependency>-->
+<!--            <groupId>com.github.jasync-sql</groupId>-->
+<!--            <artifactId>jasync-mysql</artifactId>-->
+<!--            <version>2.2.3</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>io.asyncer</groupId>
+            <artifactId>r2dbc-mysql</artifactId>
+            <version>0.9.3</version>
+        </dependency>
+        <!-- mysql -->
+
+
+        <dependency>
+            <groupId>io.r2dbc</groupId>
+            <artifactId>r2dbc-pool</artifactId>
+        </dependency>
+
+
+        <!--  测试  -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+        </dependency>
+
+
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot</groupId>-->
+        <!--            <artifactId>spring-boot-starter-webflux</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.data</groupId>-->
+        <!--            <artifactId>spring-data-r2dbc</artifactId>-->
+        <!--            <version>1.0.0.RELEASE</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot.experimental</groupId>-->
+        <!--            <artifactId>spring-boot-autoconfigure-r2dbc</artifactId>-->
+        <!--            <version>0.1.0.M1</version>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>org.springframework.boot</groupId>-->
+        <!--            <artifactId>spring-boot-starter-data-r2dbc</artifactId>-->
+        <!--        </dependency>-->
+        <!--        <dependency>-->
+        <!--            <groupId>io.r2dbc</groupId>-->
+        <!--            <artifactId>r2dbc-postgresql</artifactId>-->
+        <!--            <version>0.8.0.RELEASE</version>-->
+        <!--        </dependency>-->
+    </dependencies>
+
+    <build>
+        <!--suppress UnresolvedMavenProperty -->
+        <finalName>${finalName}</finalName>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+        </resources>
+    </build>
+
+
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>spring-milestones</id>-->
+<!--            <name>Spring Milestones</name>-->
+<!--            <url>https://repo.spring.io/milestone</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
+
+<!--    <pluginRepositories>-->
+<!--        <pluginRepository>-->
+<!--            <id>spring-milestones</id>-->
+<!--            <name>Spring Milestones</name>-->
+<!--            <url>https://repo.spring.io/milestone</url>-->
+<!--        </pluginRepository>-->
+<!--    </pluginRepositories>-->
+</project>
