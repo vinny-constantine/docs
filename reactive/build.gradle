@@ -1,0 +1,34 @@
+plugins {
+    id 'java'
+//    id 'org.springframework.boot' version '2.7.14'
+    id 'io.spring.dependency-management' version '1.0.15.RELEASE'
+}
+
+group = 'com.dover'
+version = '0.0.1-SNAPSHOT'
+
+java {
+    sourceCompatibility = 'VERSION_1_8'
+}
+
+apply plugin: 'java'
+apply plugin: 'io.spring.dependency-management'
+
+repositories {
+    mavenCentral()
+    maven { url 'https://repo.spring.io/libs-snapshot' }
+}
+
+dependencyManagement { imports { mavenBom "io.projectreactor:reactor-bom:Bismuth-RELEASE" } }
+
+dependencies {
+
+    compile 'io.projectreactor:reactor-core'
+    compile 'junit:junit:4.13.2'
+
+}
+
+
+//tasks.named('test') {
+//    useJUnitPlatform()
+//}
