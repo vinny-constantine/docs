@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dover.export.dao.OrderDao">
+
+
+    <resultMap id="BaseResultMap" type="com.dover.export.entity.Order">
+        <id column="order_number" jdbcType="INTEGER" property="orderNumber"/>
+        <result column="order_date" jdbcType="DATE" property="orderDate"/>
+        <result column="required_date" jdbcType="DATE" property="requiredDate"/>
+        <result column="shipped_date" jdbcType="DATE" property="shippedDate"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <result column="comments" jdbcType="VARCHAR" property="comments"/>
+        <result column="customer_number" jdbcType="INTEGER" property="customerNumber"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        order_number, order_date, required_date, shipped_date, `status`, comments, customer_number
+    </sql>
+
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where order_number = #{orderNumber,jdbcType=INTEGER}
+    </select>
+
+
+    <select id="selectByOrderDate" parameterType="java.time.LocalDate" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        where order_date = #{orderDate,jdbcType=DATE}
+    </select>
+
+
+    <select id="selectChunk" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order
+        <where>
+            <if test="condition.orderDate != null">
+                and order_date = #{condition.orderDate}
+            </if>
+            <if test="condition.requiredDate != null">
+                and required_date = #{condition.requiredDate}
+            </if>
+            <if test="condition.status != null">
+                and status = #{condition.status}
+            </if>
+            <if test="lowerBoundSQL != null">
+                and ${lowerBoundSQL}
+            </if>
+        </where>
+    </select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete
+        from t_order
+        where order_number = #{orderNumber,jdbcType=INTEGER}
+    </delete>
+
+
+    <insert id="insert" keyColumn="order_number" keyProperty="orderNumber" parameterType="com.dover.export.entity.Order"
+            useGeneratedKeys="true">
+        insert into t_order (order_date, required_date, shipped_date, `status`, comments, customer_number)
+        values (#{orderDate,jdbcType=DATE}, #{requiredDate,jdbcType=DATE}, #{shippedDate,jdbcType=DATE},
+                #{status,jdbcType=VARCHAR}, #{comments,jdbcType=VARCHAR}, #{customerNumber,jdbcType=INTEGER})
+    </insert>
+
+
+    <insert id="insertSelective" keyColumn="order_number" keyProperty="orderNumber"
+            parameterType="com.dover.export.entity.Order" useGeneratedKeys="true">
+        insert into t_order
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderDate != null">
+                order_date,
+            </if>
+            <if test="requiredDate != null">
+                required_date,
+            </if>
+            <if test="shippedDate != null">
+                shipped_date,
+            </if>
+            <if test="status != null">
+                `status`,
+            </if>
+            <if test="comments != null">
+                comments,
+            </if>
+            <if test="customerNumber != null">
+                customer_number,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderDate != null">
+                #{orderDate,jdbcType=DATE},
+            </if>
+            <if test="requiredDate != null">
+                #{requiredDate,jdbcType=DATE},
+            </if>
+            <if test="shippedDate != null">
+                #{shippedDate,jdbcType=DATE},
+            </if>
+            <if test="status != null">
+                #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="comments != null">
+                #{comments,jdbcType=VARCHAR},
+            </if>
+            <if test="customerNumber != null">
+                #{customerNumber,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.dover.export.entity.Order">
+        update t_order
+        <set>
+            <if test="orderDate != null">
+                order_date = #{orderDate,jdbcType=DATE},
+            </if>
+            <if test="requiredDate != null">
+                required_date = #{requiredDate,jdbcType=DATE},
+            </if>
+            <if test="shippedDate != null">
+                shipped_date = #{shippedDate,jdbcType=DATE},
+            </if>
+            <if test="status != null">
+                `status` = #{status,jdbcType=VARCHAR},
+            </if>
+            <if test="comments != null">
+                comments = #{comments,jdbcType=VARCHAR},
+            </if>
+            <if test="customerNumber != null">
+                customer_number = #{customerNumber,jdbcType=INTEGER},
+            </if>
+        </set>
+        where order_number = #{orderNumber,jdbcType=INTEGER}
+    </update>
+
+
+    <update id="updateByPrimaryKey" parameterType="com.dover.export.entity.Order">
+        update t_order
+        set order_date      = #{orderDate,jdbcType=DATE},
+            required_date   = #{requiredDate,jdbcType=DATE},
+            shipped_date    = #{shippedDate,jdbcType=DATE},
+            `status`        = #{status,jdbcType=VARCHAR},
+            comments        = #{comments,jdbcType=VARCHAR},
+            customer_number = #{customerNumber,jdbcType=INTEGER}
+        where order_number = #{orderNumber,jdbcType=INTEGER}
+    </update>
+</mapper>

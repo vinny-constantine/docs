@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dover.export.dao.OrderItemDao">
+
+
+    <resultMap id="BaseResultMap" type="com.dover.export.entity.OrderItem">
+        <id column="id" jdbcType="BIGINT" property="id"/>
+        <result column="order_number" jdbcType="INTEGER" property="orderNumber"/>
+        <result column="product_code" jdbcType="VARCHAR" property="productCode"/>
+        <result column="quantity_ordered" jdbcType="INTEGER" property="quantityOrdered"/>
+        <result column="price_each" jdbcType="DECIMAL" property="priceEach"/>
+        <result column="order_line_number" jdbcType="SMALLINT" property="orderLineNumber"/>
+    </resultMap>
+
+
+    <sql id="Base_Column_List">
+        id, order_number, product_code, quantity_ordered, price_each, order_line_number
+    </sql>
+
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from t_order_item
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete
+        from t_order_item
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+
+    <insert id="insert" keyColumn="id" keyProperty="id" parameterType="com.dover.export.entity.OrderItem"
+            useGeneratedKeys="true">
+        insert into t_order_item (order_number, product_code, quantity_ordered, price_each, order_line_number)
+        values (#{orderNumber,jdbcType=INTEGER}, #{productCode,jdbcType=VARCHAR}, #{quantityOrdered,jdbcType=INTEGER},
+                #{priceEach,jdbcType=DECIMAL}, #{orderLineNumber,jdbcType=SMALLINT})
+    </insert>
+
+
+    <insert id="insertSelective" keyColumn="id" keyProperty="id" parameterType="com.dover.export.entity.OrderItem"
+            useGeneratedKeys="true">
+        insert into t_order_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orderNumber != null">
+                order_number,
+            </if>
+            <if test="productCode != null">
+                product_code,
+            </if>
+            <if test="quantityOrdered != null">
+                quantity_ordered,
+            </if>
+            <if test="priceEach != null">
+                price_each,
+            </if>
+            <if test="orderLineNumber != null">
+                order_line_number,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="orderNumber != null">
+                #{orderNumber,jdbcType=INTEGER},
+            </if>
+            <if test="productCode != null">
+                #{productCode,jdbcType=VARCHAR},
+            </if>
+            <if test="quantityOrdered != null">
+                #{quantityOrdered,jdbcType=INTEGER},
+            </if>
+            <if test="priceEach != null">
+                #{priceEach,jdbcType=DECIMAL},
+            </if>
+            <if test="orderLineNumber != null">
+                #{orderLineNumber,jdbcType=SMALLINT},
+            </if>
+        </trim>
+    </insert>
+
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.dover.export.entity.OrderItem">
+        update t_order_item
+        <set>
+            <if test="orderNumber != null">
+                order_number = #{orderNumber,jdbcType=INTEGER},
+            </if>
+            <if test="productCode != null">
+                product_code = #{productCode,jdbcType=VARCHAR},
+            </if>
+            <if test="quantityOrdered != null">
+                quantity_ordered = #{quantityOrdered,jdbcType=INTEGER},
+            </if>
+            <if test="priceEach != null">
+                price_each = #{priceEach,jdbcType=DECIMAL},
+            </if>
+            <if test="orderLineNumber != null">
+                order_line_number = #{orderLineNumber,jdbcType=SMALLINT},
+            </if>
+        </set>
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+
+    <update id="updateByPrimaryKey" parameterType="com.dover.export.entity.OrderItem">
+        update t_order_item
+        set order_number      = #{orderNumber,jdbcType=INTEGER},
+            product_code      = #{productCode,jdbcType=VARCHAR},
+            quantity_ordered  = #{quantityOrdered,jdbcType=INTEGER},
+            price_each        = #{priceEach,jdbcType=DECIMAL},
+            order_line_number = #{orderLineNumber,jdbcType=SMALLINT}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>
