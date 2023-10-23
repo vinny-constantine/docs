@@ -53,10 +53,15 @@
     - 重新标记（阻塞）
     - 并发清除（并发）
   - G1 (garbage first)
-    - region：将内存划分为多个 region，每个 region 均可承担 eden、survivor、elder等角色
-    - 初始标记
-    - 并发标记
-    - 最终标记
+    - region：将内存划分为2048个 region(大小范围为1M~32M，默认为heapSize/2048)，每个 region 均可承担 eden、survivor、elder等角色，g1进行复制清除时【collection set】中标记的对象copy至【survivor region】或【old region】中，
+    【old generation】则只会根据对象年龄将对象copy至对应年龄的 【old region】
+    ![g1gc](./img/g1gc-cycle.png)
+    - young only phase：仅回收【年轻代】，会逐渐用完所有可用的老年代region
+      - 初始标记
+      - 并发标记
+      - 最终标记
+    - space reclaimation phase：会开始增量回收【老年代】空间，同时也会回收【年轻代】，结束后又会流转到【young only phase】
+    
 
 ## Spring
 
@@ -103,7 +108,7 @@
       - 隐式类型转化：容易被忽视，比如 `shop_id varchar(255) & shopId(Long)` ，导致 `where shop_id = #{shopId}` 时索引失效
 - 为何使用 B+ tree 创建索引
   - 每页16k的情况下，
-  - 由于非叶子节点均用来存储索引，树高度小，查询效率高
+  - 由于非叶子节点均用于存储索引，树高度小，查询效率高
   - 有序，方便从硬盘预加载数据
 
 ## 全渠道运营项目
