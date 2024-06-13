@@ -95,7 +95,7 @@
 ## Json
 
 - jackson的`@JsonFormat(pattern="yyyy-MM-dd",timezone="GMT+8")`需要加上时区
-- long 类型的 json 字段在被序列化的时候有可能丢失精度
+- long 类型的 json 字段在被js反序列化的时候可能丢失精度，因为js仅支持64位双精度浮点数，1符号位，11指数位，52尾数位，最多有53位表示大整数，因此超过53位的大整数，会丢失精度
 
 ## mysql
 
