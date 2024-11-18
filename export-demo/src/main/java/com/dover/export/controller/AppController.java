@@ -45,9 +45,9 @@ public class AppController {
     @PostMapping("/export")
     public ResponseEntity<StreamingResponseBody> export() {
         return ResponseEntity.ok()
-            .contentType(MediaType.APPLICATION_OCTET_STREAM)
             .header(HttpHeaders.CONTENT_DISPOSITION,
                 String.format("attachment; filename=order-%s.csv", LocalDateTime.now()))
+            .header(HttpHeaders.CONTENT_TYPE, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
             .body(outputStream -> ExcelStreamingUtil.export(outputStream,
                 new OrderChunk(2, Order.builder().status("Cancelled").build())));
     }
