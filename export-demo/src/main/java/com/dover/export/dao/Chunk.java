@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 /**
  * 该类线程不安全
  *
- * @author wangwei
+ * @author dover
  * @since 2020/11/16
  */
 @SuppressWarnings("all")

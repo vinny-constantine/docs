@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * @author wangwei
+ * @author dover
  * @since 2020/11/19
  */
 @RestController
@@ -50,5 +50,53 @@ public class AppController {
                 String.format("attachment; filename=order-%s.csv", LocalDateTime.now()))
             .body(outputStream -> ExcelStreamingUtil.export(outputStream,
                 new OrderChunk(2, Order.builder().status("Cancelled").build())));
+    }
+
+    
+    /**
+     * 转发excel流
+     */
+    @PostMapping("/uploadExcelFile")
+    public JSONObject uploadExcelFile(String groupId, MultipartFile file, @RequestHeader Map<String, String> headerMap) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+            headerMap.entrySet().forEach(x -> headers.add(x.getKey(), String.valueOf(x.getValue())));
+            MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+            body.add("groupId", groupId);
+            body.add("file", new UploadedByteArrayResource(file.getOriginalFilename(), file.getBytes()));
+            HttpEntity<MultiValueMap<String, Object>> httpEntity = new HttpEntity<>(body, headers);
+            return restTemplateService.postForJson(urlUtinls.getDispatchAdminUrl() + "/uploadFile", httpEntity);
+        } catch (IOException e) {
+            log.error("转发excel流失败")
+        }
+    }
+
+        
+    /**
+     * @author dover
+     */
+    public static class UploadedByteArrayResource extends ByteArrayResource {
+
+        private String filename;
+
+        public UploadedByteArrayResource(byte[] byteArray) {
+            super(byteArray);
+        }
+
+        public UploadedByteArrayResource(String filename, byte[] byteArray) {
+            super(byteArray);
+            this.filename = filename;
+        }
+
+        public UploadedByteArrayResource(byte[] byteArray, String description) {
+            super(byteArray, description);
+        }
+
+        @Override
+        public String getFilename() {
+            return this.filename;
+        }
+
     }
 }

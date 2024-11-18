@@ -1,13 +1,3 @@
-/*
- *
- *  * Copyright (C) 2018, All rights Reserved, Designed By www.xiniaoyun.com
- *  * @author: 王兴
- *  * @since 19-5-11 上午11:49 下午3:35
- *  * @Copyright: 2019 www.xiniaoyun.com Inc. All rights reserved.
- *  * 注意：本内容仅限于南京微欧科技有限公司内部传阅，禁止外泄以及用于其他的商业目的
- *
- */
-
 package com.dover.export.utils;
 
 import com.dover.export.annotation.ExcelColumn;
@@ -61,9 +51,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * excel工具类
- *
- * @author <a href="mailto:wangxing@xiniaoyun.com">wangxing</a>
+ * dover
  */
 public class ExcelUtil {
 

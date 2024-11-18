@@ -5,7 +5,7 @@ import com.dover.export.entity.BasePO;
 import java.util.List;
 
 /**
- * @author wangwei
+ * @author dover
  * @since 2020/11/17
  */
 public interface ChunkSelector {

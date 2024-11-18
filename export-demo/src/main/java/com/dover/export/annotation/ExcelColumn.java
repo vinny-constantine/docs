@@ -1,13 +1,3 @@
-/*
- *
- *  * Copyright (C) 2018, All rights Reserved, Designed By www.xiniaoyun.com
- *  * @author: 王兴
- *  * @since 19-5-11 上午11:55 下午3:35
- *  * @Copyright: 2019 www.xiniaoyun.com Inc. All rights reserved.
- *  * 注意：本内容仅限于南京微欧科技有限公司内部传阅，禁止外泄以及用于其他的商业目的
- *
- */
-
 package com.dover.export.annotation;
 
 import java.lang.annotation.Documented;
@@ -17,6 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
+ * dover
  * excel注解
  */
 @Target({ElementType.FIELD})
