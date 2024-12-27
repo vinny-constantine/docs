@@ -43,7 +43,7 @@ public class WaterMarkUtil {
     @SneakyThrows
     public static void main(String[] args) {
         addForPdf(new FileInputStream("D:\\Users\\80321000\\Desktop\\A.pdf"),
-            new FileOutputStream("D:\\Users\\80321000\\Desktop\\B.pdf"), "马飞1234");
+            new FileOutputStream("D:\\Users\\80321000\\Desktop\\B.pdf"), "示例1234");
     }
 
     /**
