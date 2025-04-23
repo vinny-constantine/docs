@@ -104,6 +104,15 @@
         </dependency>
         <!--    生成word并转为pdf所需jar    -->
 
+
+
+        <!--    解析java文件工具JavaFileParseUtil    -->
+        <dependency>
+            <groupId>org.eclipse.jdt</groupId>
+            <artifactId>org.eclipse.jdt.core</artifactId>
+            <version>3.10.0</version>
+        </dependency>
+        <!--    解析java文件工具JavaFileParseUtil    -->
     </dependencies>
 
 
