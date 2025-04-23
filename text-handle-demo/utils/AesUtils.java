@@ -17,7 +17,7 @@ import java.util.function.Function;
 /**
  * AES对称加密，对明文进行加密、解密处理，推荐使用AES_CBC_256, 数据库使用的是 AES_ECB_128
  *
- * @author liudezhi
+ * @author dover
  */
 public class AesUtils {
     private static final int IV_SIZE_16 = 16;

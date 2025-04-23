@@ -7,7 +7,7 @@ import java.lang.reflect.Parameter;
 /**
  * 操作人用户信息注入相关拦截器
  *
- * @author wangwei
+ * @author dover
  * @date 2024-05-28
  */
 @Slf4j

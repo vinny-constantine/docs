@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * @author wangwei
+ * @author dover
  * @date 2024-03-26
  */
 public class MybatisUtil {

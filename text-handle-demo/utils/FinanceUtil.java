@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 
 /**
- * @author wangwei
+ * @author dover
  * @since 2021/3/19
  */
 public class FinanceUtil {

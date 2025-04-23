@@ -3,7 +3,7 @@
  * 与 @RequestBody 注解作用相同
  * 解析参数并注入操作人相关信息，解析参数由 @RequestBody 的参数解析器完成
  *
- * @author wangwei
+ * @author dover
  * @date 2024/5/28
  * @see InjectOprInfoInterceptor
  */
