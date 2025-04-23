@@ -1,6 +1,6 @@
 
 @RestController("/")
-public class DemoController {
+public class FooController {
 
 
 
