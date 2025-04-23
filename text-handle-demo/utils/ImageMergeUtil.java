@@ -112,7 +112,7 @@ public class ImageMergeUtil {
         pen.setStroke(new BasicStroke(1));
         pen.setColor(Color.BLACK);
         pen.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        pen.drawString("张婷婷 ｜ OPPO官方授权体验店张婷婷 ｜ OPPO官方授权体验店张婷婷 ｜ OPPO官方授权体验店张婷婷 ｜ OPPO官方授权体验店张婷婷 ｜ OPPO官方授权体验店", avatarX + avatarWidth, avatarY + avatarWidth * 60 / 100);
+        pen.drawString("张婷婷 ｜ 官方授权体验店张婷婷 ｜ 官方授权体验店张婷婷 ｜ 官方授权体验店张婷婷 ｜ 官方授权体验店张婷婷 ｜ 官方授权体验店", avatarX + avatarWidth, avatarY + avatarWidth * 60 / 100);
         pen.dispose();
         return image;
     }

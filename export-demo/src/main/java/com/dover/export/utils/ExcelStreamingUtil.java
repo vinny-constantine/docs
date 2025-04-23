@@ -465,7 +465,7 @@ public class ExcelStreamingUtil {
     }
 
     /**
-     * @author wangwei
+     * @author dover
      * @since 2020/11/17
      */
     public enum StyleEnum {

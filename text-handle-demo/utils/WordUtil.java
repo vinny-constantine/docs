@@ -61,7 +61,7 @@ public class WordUtil {
             .bgColor("C0C0C0")
             .textFontSize(9)
             .create();
-        RowRenderData data = Rows.of("1", "江西", "OPPO官方授权服务体验中心(武都新市街十字路口店)", "JX1111", "远帆", "OES", "T2", "2023年5月", "10,000",
+        RowRenderData data = Rows.of("1", "江西", "官方授权服务体验中心(武都新市街十字路口店)", "JX1111", "远帆", "OES", "T2", "2023年5月", "10,000",
             "4.000", "7,500", "21,500").center()
             .textFontSize(7)
             .rowAtleastHeight(1.8)
