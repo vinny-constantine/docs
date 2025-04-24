@@ -42,6 +42,32 @@ public class AppController {
             () -> System.out.println(LocalDateTime.now() + " 执行了 " + Thread.currentThread().getName()));
     }
 
+
+
+    /**
+     * 导出运单信息列表
+     */
+    @PostMapping("/exportElectronicWaybillList")
+    public ResponseEntity<StreamingResponseBody> exportElectronicWaybillList(@Validated(Default.class) @RequestBody ElectronicWaybillPageQueryDto req) {
+        try {
+            //设置首次导出页码和每页条数
+            req.setPageNum(1);
+            req.setPageSize(1000);
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s_%s.xlsx", URLUtil.encode("运单信息", StandardCharsets.UTF_8.name()), LocalDateTime.now()))
+                .header(HttpHeaders.CONTENT_TYPE, ExcelUtil.CONTENT_TYPE_EXCEL_VALUE)
+                .body(outputStream -> ExcelUtil.export(outputStream, ElectronicWaybillPageItemDto.class, req, pageReq -> electronicWaybillService.queryElectronicWaybillPage(pageReq)));
+        } catch (Exception e) {
+            log.error("导出运单信息列表失败:", e);
+            return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, String.format("attachment; filename=%s_%s.xlsx", URLUtil.encode("运单信息_导出失败", StandardCharsets.UTF_8.name()), LocalDateTime.now()))
+                .header(HttpHeaders.CONTENT_TYPE, ExcelUtil.CONTENT_TYPE_EXCEL_VALUE)
+                .body(outputStream -> ExcelUtil.export(outputStream, ElectronicWaybillPageItemDto.class, Lists.newArrayList()));
+        }
+    }
+
+
+
     @PostMapping("/export")
     public ResponseEntity<StreamingResponseBody> export() {
         return ResponseEntity.ok()

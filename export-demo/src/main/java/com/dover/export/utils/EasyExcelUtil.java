@@ -30,8 +30,11 @@ import java.util.List;
 import java.util.function.Function;
 @Slf4j
 public final class ExcelUtil {
-
+    //导出临时目录路径
     public static final String DIR_PATH = "tmp_export";
+    //导出excel的content-type值
+    public static final String CONTENT_TYPE_EXCEL_VALUE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
 
     @SneakyThrows
     public static void main(String[] args) {
@@ -48,10 +51,12 @@ public final class ExcelUtil {
      * @param <R> 导出入参数据类型
      */
     public static <T, R extends CommonPageReq> void export(OutputStream outputStream, Class<T> clazz, R commonPageReq, Function<R, CommonPageResult<T>> queryDataFunction) {
+        File tempFile = null;
         try {
+            // 创建临时文件
             Path dir = Paths.get(DIR_PATH);
             if (!Files.exists(dir)) Files.createDirectory(dir);
-            File tempFile = Files.createTempFile(dir, "tmp", ".xlsx").toFile();
+            tempFile = Files.createTempFile(dir, "tmp", ".xlsx").toFile();
             // 创建样式策略
             HorizontalCellStyleStrategy horizontalCellStyleStrategy =
                 new HorizontalCellStyleStrategy(getHeaderCellStyle(IndexedColors.BLACK), getBodyCellStyle(IndexedColors.BLACK));
@@ -69,8 +74,8 @@ public final class ExcelUtil {
                 // 写入数据
                 excelWriter.write(pageData.getList(), writeSheet);
                 // 判断是否还剩余数据
-                while(pageData.getPages() > 1 && pageData.getPageNum() < pageData.getPages()) {
-                    commonPageReq.setPageNum(pageData.getPageNum() + 1);
+                while (pageData.getPages() > 1 && commonPageReq.getPageNum() < pageData.getPages()) {
+                    commonPageReq.setPageNum(commonPageReq.getPageNum() + 1);
                     CommonPageResult<T> nextPageResult = queryDataFunction.apply(commonPageReq);
                     if(nextPageResult.isSuccess() && nextPageResult.getData() != null && CollUtil.isNotEmpty(nextPageResult.getData().getList())) {
                         //写入该页数据
@@ -86,6 +91,10 @@ public final class ExcelUtil {
             IOUtils.copy(Files.newInputStream(tempFile.toPath()), outputStream);
         } catch (IOException e) {
             log.error("导出失败", e);
+        } finally {
+            if (tempFile != null && !tempFile.delete()) {
+                log.warn("临时文件删除失败，文件路径：{}", tempFile.getAbsolutePath());
+            }
         }
     }
     /**
@@ -96,10 +105,12 @@ public final class ExcelUtil {
      * @param <T> 导出数据类型
      */
     public static <T> void export(OutputStream outputStream, Class<T> clazz, List<T> dataList) {
+        File tempFile = null;
         try {
+            // 创建临时文件
             Path dir = Paths.get(DIR_PATH);
             if (!Files.exists(dir)) Files.createDirectory(dir);
-            File tempFile = Files.createTempFile(dir, "tmp", ".xlsx").toFile();
+            tempFile = Files.createTempFile(dir, "tmp", ".xlsx").toFile();
             // 创建样式策略
             HorizontalCellStyleStrategy horizontalCellStyleStrategy =
                 new HorizontalCellStyleStrategy(getHeaderCellStyle(IndexedColors.BLACK), getBodyCellStyle(IndexedColors.BLACK));
@@ -115,6 +126,10 @@ public final class ExcelUtil {
             IOUtils.copy(Files.newInputStream(tempFile.toPath()), outputStream);
         } catch (IOException e) {
             log.error("导出失败", e);
+        } finally {
+            if (tempFile != null && !tempFile.delete()) {
+                log.warn("临时文件删除失败，文件路径：{}", tempFile.getAbsolutePath());
+            }
         }
     }
 
