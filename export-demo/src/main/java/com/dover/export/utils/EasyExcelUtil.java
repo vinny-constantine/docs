@@ -68,6 +68,8 @@ public final class ExcelUtil {
             // 创建sheet
             WriteSheet writeSheet = writerBuilder.sheet("Sheet1").build();
             // 查询一次数据
+            commonPageReq.setPageNum(Optional.ofNullable(commonPageReq.getPageNum()).orElse(1));
+            commonPageReq.setPageSize(Optional.ofNullable(commonPageReq.getPageSize()).orElse(1000));
             CommonPageResult<T> pageResult = queryDataFunction.apply(commonPageReq);
             CommonPage<T> pageData = pageResult.getData();
             if(pageResult.isSuccess() && pageData != null && CollUtil.isNotEmpty(pageData.getList())) {
@@ -86,6 +88,8 @@ public final class ExcelUtil {
                         break;
                     }
                 }
+            } else {
+                excelWriter.write(new ArrayList<>(), writeSheet);
             }
             excelWriter.finish();
             IOUtils.copy(Files.newInputStream(tempFile.toPath()), outputStream);
