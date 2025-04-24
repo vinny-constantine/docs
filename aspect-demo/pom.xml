@@ -100,7 +100,29 @@
                         </exclude>
                     </excludes>
                 </configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>repackage</goal>
+							<!--可以把依赖的包都打包到生成的Jar包中 -->
+						</goals>
+					</execution>
+				</executions>
             </plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.1</version>
+				<configuration>
+					<source>${java.version}</source>
+					<target>${java.version}</target>
+					<encoding>${project.build.sourceEncoding}</encoding>
+                    <!-- 方便在切面中使用 ParameterNameDiscoverer 获取参数真实名称 -->
+					<compilerArgs>
+						<arg>-parameters</arg>
+					</compilerArgs>
+				</configuration>
+			</plugin>
         </plugins>
     </build>
 
