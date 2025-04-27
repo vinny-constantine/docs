@@ -49,9 +49,13 @@ public class CommonParamHandleAspect {
                     }
                 }
             }
-            
-            return joinPoint.proceed(args);
-
+            //执行请求,获取请求结果
+            Object proceedResult = joinPoint.proceed(args);
+            String proceedResultStr = getString(proceedResult);
+            //超过长度截取, 并提示（已截断）
+            proceedResultStr = proceedResultStr.length() > Constants.MAX_RETURN_VALUE_LOG_LENGTH ? proceedResultStr.substring(0, Constants.MAX_RETURN_VALUE_LOG_LENGTH) + "...（已截断）" : proceedResultStr;
+            log.info("方法 {} 返回值 {}", ((MethodSignature) joinPoint.getSignature()).getMethod().getName(), proceedResultStr);
+            return proceedResult;
         } catch (Exception e) {
             log.error("公共参数处理出现异常", e);
             return methodReturn(method, "ERR001", Optional.ofNullable(CommonParamDto.CommonParamContext.get()).map(CommonParamDto::getMsg).filter(StringUtils::isNotBlank).orElse("系统繁忙，请稍后再试！"));
@@ -72,5 +76,18 @@ public class CommonParamHandleAspect {
         } else {
             return JSONObject.parseObject(JSON.toJSONString(MesResultBean.fail(code, msg)), methodReturnType);
         }
+    }
+
+    private String getString(Object rvt) {
+        if (rvt == null) {
+            return "";
+        }
+        if (rvt instanceof byte[]) {
+            return "（已忽略, 返回结果为字节数据）";
+        }
+        if (rvt instanceof String) {
+            return rvt.toString();
+        }
+        return JSON.toJSONString(rvt);
     }
 }
