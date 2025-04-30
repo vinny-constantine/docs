@@ -27,7 +27,11 @@ public class FooInterceptor implements Interceptor {
         //tricks：给mapper方法添加参数
         if (args != null && args.length > 1) {
             Object parameter = args[1];
-            if (parameter instanceof Map) {
+            if (parameter == null) {
+                JSONObject params = new JSONObject();
+                params.put("dover", "abc");
+                args[1] = params;
+            } else if (parameter instanceof Map) {
                 ((Map) parameter).put("dover", "abc");
             } else if (ClassUtils.isPrimitiveOrWrapper(parameter.getClass()) || parameter instanceof String) {
                 JSONObject params = new JSONObject();
