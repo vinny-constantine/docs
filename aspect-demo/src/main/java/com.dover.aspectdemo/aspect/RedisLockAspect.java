@@ -51,13 +51,14 @@ public class RedisLockAspect implements ApplicationContextAware {
             log.info("===尝试获取锁，lockKey={}===", lockKey);
             boolean locked;
             if (lockKey.contains(DELIMITER)) {//lockKey多值时，每个key都尝试获取锁，所有锁都获取成功才视为锁成功
-                locked = Arrays.stream(lockKey.split(DELIMITER)).allMatch(key -> redisLock.tryLock(key, mesRedisLock.waitTime(), mesRedisLock.leaseTime()));
+                RedissonMultiLock redissonMultiLock = new RedissonMultiLock(Arrays.stream(lockKey.split(DELIMITER)).map(key -> getLock(key)).toArray(RLock[]::new));
+                locked = redissonMultiLock.tryLock(mesRedisLock.waitTime(), mesRedisLock.leaseTime(), mesRedisLock.timeUnit());
             } else {
-                locked = redisLock.tryLock(lockKey, mesRedisLock.waitTime(), mesRedisLock.leaseTime());
+                locked = redissonClient.tryLock(lockKey, mesRedisLock.waitTime(), mesRedisLock.leaseTime(), mesRedisLock.timeUnit());
             }
             if (!locked) {//获取锁失败则返回异常
                 if (lockKey.contains(DELIMITER)) {//lockKey多值时，获取锁失败，释放所有锁
-                    Arrays.stream(lockKey.split(DELIMITER)).filter(key -> redisLock.isLockedByCurrentThread(key)).forEach(key -> redisLock.unlock(key));
+                    Arrays.stream(lockKey.split(DELIMITER)).filter(key -> getLock(key).isHeldByCurrentThread()).forEach(key -> redissonClient.unlock(key));
                 }
                 if (MesResultPage.class.isAssignableFrom(returnType)) {
                     log.info("获取锁失败，返回MesResultPage失败结果");
@@ -71,10 +72,10 @@ public class RedisLockAspect implements ApplicationContextAware {
         } finally {
             try {
                 if (lockKey.contains(DELIMITER)) {//lockKey多值时，释放所有锁
-                    Arrays.stream(lockKey.split(DELIMITER)).filter(key -> redisLock.isLockedByCurrentThread(key)).forEach(key -> redisLock.unlock(key));
+                    Arrays.stream(lockKey.split(DELIMITER)).filter(key -> getLock(key).isHeldByCurrentThread()).forEach(key -> redissonClient.unlock(key));
                     log.info("===释放锁成功，lockKey：{}===", lockKey);
-                } else if (redisLock.isLockedByCurrentThread(lockKey)) {
-                    redisLock.unlock(lockKey);
+                } else if (getLock(lockKey).isHeldByCurrentThread()) {
+                    redissonClient.unlock(lockKey);
                     log.info("===释放锁成功，lockKey：{}===", lockKey);
                 }
             } catch (Exception e) {
@@ -83,6 +84,14 @@ public class RedisLockAspect implements ApplicationContextAware {
         }
     }
     
+    private RLock getLock(String key) {
+        try {
+            return redissonClient.getLock(key);
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 解析lockKey
      */
