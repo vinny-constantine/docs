@@ -30,7 +30,7 @@ public final class FontUtil {
 
     public static class FontResourcesHolder {
 
-        public static final String DEFAULT_FONT_URL = "https://s3v2-qos.storage.wanyol.com/drp-commodity-dev/''/16c0738c-25e3-4188-a060-bfb38316e973.ttf";
+        public static final String DEFAULT_FONT_URL = "https://localhost:8080/16c0738c-25e3-4188-a060-bfb38316e973.ttf";
         public static final String FONT_URL_NACOS = "font-url";
         public static final String FONT_NAME = "zh_CN.ttf";
         private static final CMap C_MAP;
@@ -58,7 +58,7 @@ public final class FontUtil {
 
     @SneakyThrows
     public static void main(String[] args) {
-        extractSubFont(stringToCodePoints("马飞一一二二"),
+        extractSubFont(stringToCodePoints("马一一二二"),
             Files.newOutputStream(Paths.get("D:\\Users\\80321000\\Desktop\\A.ttf")));
     }
 

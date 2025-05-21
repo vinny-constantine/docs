@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
  */
 public class AmapUtil {
 
-    public static final String KEY = "10174822b15c6a22d4f02171ece9a93e";
+    public static final String KEY = "";
     public static final String GEO_API = "https://restapi.amap.com/v3/geocode/geo";
     public static final String DISTANCE_API = "https://restapi.amap.com/v3/distance";
     public static final String REGEO_API = "https://restapi.amap.com/v3/geocode/regeo";

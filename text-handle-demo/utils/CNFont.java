@@ -14,7 +14,7 @@ import java.awt.Color;
  */
 public class CNFont implements IFontProvider {
 
-    public static final String DEFAULT_FONT_URL = "https://s3v2-qos.storage.wanyol.com/drp-commodity-test/file/830e1736-a96e-4437-be9c-6545ef411c88.ttf";
+    public static final String DEFAULT_FONT_URL = "https://localhost:8080/file/830e1736-a96e-4437-be9c-6545ef411c88.ttf";
     public static final String FONT_NAME = "zh_CN.ttf";
     public static final BaseFont BASE_FONT;
 
