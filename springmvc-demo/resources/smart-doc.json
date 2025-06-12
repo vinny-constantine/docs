@@ -1,0 +1,44 @@
+{
+  "projectName": "项目名称",
+  "outPath": "D:/workspace/dover-demo/src/main/resources/static/dover-demo/doc",
+  "packageFilters": "com.dover.controller",
+  "appHost": "http://localhost:8080",
+  "allInOne": true,
+  "allInOneDocFileName": "api.html",
+  "serverUrl": "/",
+  "coverOld": true,
+  "autoGenerate": true,
+  "sortByTitle": true,
+  "sortByGroup": true,
+  "createDebugPage": true,
+  "openApi": true,
+  "showAuthor": true,
+  "inlineEnum": true,
+  "requestExample": true,
+  "responseExample": true,
+  "requestHeaders": [
+    {
+      "name": "token",
+      "type": "string",
+      "desc": "token",
+      "required": false
+    }
+  ],
+  "customResponseFields": [
+    {
+      "name": "code",
+      "type": "int",
+      "desc": "响应码"
+    },
+    {
+      "name": "msg",
+      "type": "string",
+      "desc": "响应消息"
+    },
+    {
+      "name": "data",
+      "type": "object",
+      "desc": "响应数据"
+    }
+  ]
+}
