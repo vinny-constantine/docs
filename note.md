@@ -120,3 +120,12 @@
   - 左连接时，在 `on` 之后的筛选条件中，如果仅用右表字段进行筛选，是可以减少符合条件的记录数的，如果仅用左表进行筛选，那么不会减少符合条件的记录数，仅会将不符合条件的记录的右表字段置为 `null`
 
 
+## maven
+
+- idea使用maven goal
+```shell
+# 先在顶层pom执行 clean install
+clean install -DskipTests --update-snapshots -am --pl contract-client-web
+# 再在对应模块pom执行文档生成
+smart-doc:html
+```
