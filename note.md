@@ -129,3 +129,18 @@ clean install -DskipTests --update-snapshots -am --pl contract-client-web
 # 再在对应模块pom执行文档生成
 smart-doc:html
 ```
+
+## ai prompt
+
+```shell
+# 请参考以下文档描述，生成javabean，它使用包装类型，使用BigDecimal，使用java.util.Date，使用Integer替代Short，使用lombok的@Data注解，实现java.io.Serializable接口，添加文档注释（中文）
+
+
+# 请参考以下表结构，生成javabean，它使用包装类型，使用BigDecimal，使用java.util.Date，使用Integer替代Short，使用lombok的@Data注解，实现java.io.Serializable接口，添加 mybatis-plus 注解，添加文档注释（中文）
+
+
+# 请参考以下表结构，生成mybatis的 mapper.java 和 mapper.xml, 其中 mapper.xml 中包含insert、updateByIdSelective、deleteByIdLogically、selectById、selectByCondition 等方法
+
+
+# 请根据以下表结构，生成三条sql insert测试数据
+```
