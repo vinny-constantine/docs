@@ -2,6 +2,28 @@
 @Slf4j
 @Service
 public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTemplateAdminService {
+
+
+
+
+    public static void main(int[] args) {
+        //spring spel 根据上下文计算
+        JSON context = new JSONObject();
+
+        String serializedExpressions = "a * b";
+
+        Expression expression = expressionMap.containsKey(serializedExpressions)
+            ? expressionMap.get(serializedExpressions)
+            : spelExpressionParser.parseExpression(serializedExpressions);
+        expressionMap.putIfAbsent(serializedExpressions, expression);
+        Object serializedValue = expression.getValue(context);
+        context.put(entry.getKey(), serializedValue);
+    }
+
+
+
+
+
     @Override
     public OmsResult<PrintDataQueryDto> queryPrintData(PrintDataQueryReq printDataQueryReq) {
         //TODO 根据生态、应用编码（打印）查询生态业务配置
