@@ -35,11 +35,11 @@ public class DoverResultBean<T> implements Serializable {
      */
     private T data;
 
-    public MesResultBean() {
+    public CommonResultBean() {
         this.traceId = TraceIdUtil.getTraceId();
     }
 
-    public MesResultBean(String code, String msg, String traceId, T data) {
+    public CommonResultBean(String code, String msg, String traceId, T data) {
         this.code = code;
         this.msg = msg;
         this.data = data;
@@ -61,20 +61,20 @@ public class DoverResultBean<T> implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    public <R> MesResultBean<R> cast() {
-        return (MesResultBean<R>) this;
+    public <R> CommonResultBean<R> cast() {
+        return (CommonResultBean<R>) this;
     }
 
     
-    public static <T> MesResultBean<T> build(String code, String msg, T data) {
+    public static <T> CommonResultBean<T> build(String code, String msg, T data) {
         //在异常情况下，且有通用上下文时，尝试记录异常信息，方便setRollbackOnly()后，返回业务提示
         if (ERROR_CODE.equals(code) && CommonParamDto.CommonParamContext.get() != null) {
             CommonParamDto.CommonParamContext.get().setMsg(msg);
         }
-        return MesResultBean.<T>builder().code(code).msg(msg).data(data).traceId(TraceIdUtil.getTraceId()).build();
+        return CommonResultBean.<T>builder().code(code).msg(msg).data(data).traceId(TraceIdUtil.getTraceId()).build();
     }
 
-    public static <T> MesResultBean<T> build(JSONObject jsonObject) {
+    public static <T> CommonResultBean<T> build(JSONObject jsonObject) {
         String code = Optional.ofNullable(jsonObject.getString("code")).orElse(ERROR_CODE);
         String msg = Optional.ofNullable(jsonObject.getString("msg")).orElse(ERROR_MSG);
         //在异常情况下，且有通用上下文时，尝试记录异常信息，方便setRollbackOnly()后，返回业务提示
@@ -82,7 +82,7 @@ public class DoverResultBean<T> implements Serializable {
             CommonParamDto.CommonParamContext.get().setMsg(msg);
         }
         TypeReference<T> clazz = null;
-        return MesResultBean.<T>builder()
+        return CommonResultBean.<T>builder()
             .code(code)
             .msg(msg)
             .data(jsonObject.getObject("data", clazz))
@@ -90,48 +90,48 @@ public class DoverResultBean<T> implements Serializable {
             .build();
     }
 
-    public static <T> MesResultBean<T> ok() {
+    public static <T> CommonResultBean<T> ok() {
         return build(SUCCESS_CODE, SUCCESS_MSG, null);
     }
 
-    public static <T> MesResultBean<T> ok(String msg) {
+    public static <T> CommonResultBean<T> ok(String msg) {
         return build(SUCCESS_CODE, msg, null);
     }
 
-    public static <T> MesResultBean<T> okAndLog(String msg) {
+    public static <T> CommonResultBean<T> okAndLog(String msg) {
         log.info(msg);
         return build(SUCCESS_CODE, msg, null);
     }
 
-    public static <T> MesResultBean<T> ok(T data) {
+    public static <T> CommonResultBean<T> ok(T data) {
         return build(SUCCESS_CODE, SUCCESS_MSG, data);
     }
 
-    public static <T> MesResultBean<T> ok(String msg, T data) {
+    public static <T> CommonResultBean<T> ok(String msg, T data) {
         return build(SUCCESS_CODE, msg, data);
     }
 
-    public static <T> MesResultBean<T> fail() {
+    public static <T> CommonResultBean<T> fail() {
         return build(ERROR_CODE, ERROR_MSG, null);
     }
 
 
-    public static <T> MesResultBean<T> fail(String msg) {
+    public static <T> CommonResultBean<T> fail(String msg) {
         return build(ERROR_CODE, msg, null);
     }
 
-    public static <T> MesResultBean<T> fail(T data) {
+    public static <T> CommonResultBean<T> fail(T data) {
         return build(ERROR_CODE, ERROR_MSG, data);
     }
 
-    public static <T> MesResultBean<T> fail(String msg, T data) {
+    public static <T> CommonResultBean<T> fail(String msg, T data) {
         return build(ERROR_CODE, msg, data);
     }
-    public static <T> MesResultBean<T> fail(String code, String msg) {
+    public static <T> CommonResultBean<T> fail(String code, String msg) {
         return build(code, msg, null);
     }
 
-    public static <T> MesResultBean<T> failAndLog(String msg) {
+    public static <T> CommonResultBean<T> failAndLog(String msg) {
         log.error(msg);
         return build(ERROR_CODE, msg, null);
     }

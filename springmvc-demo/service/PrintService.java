@@ -25,14 +25,14 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
 
 
     @Override
-    public OmsResult<PrintDataQueryDto> queryPrintData(PrintDataQueryReq printDataQueryReq) {
+    public CommonResultBean<PrintDataQueryDto> queryPrintData(PrintDataQueryReq printDataQueryReq) {
         //TODO 根据生态、应用编码（打印）查询生态业务配置
         ErpEcologicalManagementBean erpEcologicalManagementBean = erpEcologicalManagementBeanMapper.selectByCondition(ErpEcologicalManagementSelectReq.builder()
             .applicationSystemCode("")//TODO 打印系统的编码
             .ecosystemType(printDataQueryReq.getEcosystemType())
             .build());
         if (erpEcologicalManagementBean == null) {
-            return OmsResult.error("未查询到打印系统的生态配置");
+            return CommonResultBean.error("未查询到打印系统的生态配置");
         }
         //业务单据编码查询单据配置
         List<ErpEcologicalManagementDetailBean> erpEcologicalManagementDetailBeanList = erpEcologicalManagementDetailBeanMapper.selectByCondition(ErpEcologicalManagementDetailBean
@@ -41,7 +41,7 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
             .businessCode(printDataQueryReq.getBusinessOrderCode())
             .build());
         if (CollUtil.isEmpty(erpEcologicalManagementDetailBeanList)) {
-            return OmsResult.error("未查询到打印系统的业务单据配置");
+            return CommonResultBean.error("未查询到打印系统的业务单据配置");
         }
         //根据单据配置查询所有展示字段、序列化方式等
         ErpEcologicalManagementDetailBean erpEcologicalManagementDetailBean = erpEcologicalManagementDetailBeanList.get(0);
@@ -51,7 +51,7 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
             .businessCode(erpEcologicalManagementDetailBean.getBusinessCode())
             .build());
         if (CollUtil.isEmpty(erpEcologicalManagementDetailFieldsDtoList)) {
-            return OmsResult.error("未查询到打印系统的业务单据字段配置");
+            return CommonResultBean.error("未查询到打印系统的业务单据字段配置");
         }
         //查询业务单据注册配置
         ErpBusinessDataRegistrationBean erpBusinessDataRegistrationBean = erpBusinessDataRegistrationMapper.queryErpBusinessDataRegistrationByEcosystemTypeAndBusiness(
@@ -59,27 +59,27 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
             null,
             erpEcologicalManagementDetailBean.getBusinessCode());
         if (erpBusinessDataRegistrationBean == null) {
-            return OmsResult.error("未查询到打印系统的业务单据注册配置");
+            return CommonResultBean.error("未查询到打印系统的业务单据注册配置");
         }
         String executionMethod = erpBusinessDataRegistrationBean.getExecutionMethod();
         if (StringUtils.isEmpty(executionMethod)) {
-            return OmsResult.error("未查询到打印系统的业务单据注册配置的执行方法");
+            return CommonResultBean.error("未查询到打印系统的业务单据注册配置的执行方法");
         }
         //根据业务单据配置、业务单据号查询单据打印数据
-        OmsResult<Object> omsResult = tryInvokeExecutionMethod(executionMethod, printDataQueryReq.getReq());
-        if (omsResult.isNg()) {
+        CommonResultBean<Object> CommonResultBean = tryInvokeExecutionMethod(executionMethod, printDataQueryReq.getReq());
+        if (CommonResultBean.isNg()) {
             log.error("执行方法={}执行失败, 请检查执行方法和参数, args={}", executionMethod, printDataQueryReq.getReq());
-            return OmsResult.error(omsResult.getMsg());
+            return CommonResultBean.error(CommonResultBean.getMsg());
         }
         //组装展示字段及打印数据,并按配置序列化
-        OmsResult<JSONArray> printDataResult = serializePrintData(erpEcologicalManagementDetailFieldsDtoList, omsResult.getData());
+        CommonResultBean<JSONArray> printDataResult = serializePrintData(erpEcologicalManagementDetailFieldsDtoList, CommonResultBean.getData());
         if (printDataResult.isNg()) {
-            log.error("打印数据序列化失败, 请检查打印数据字段配置, fields={}, data={}", JSON.toJSONString(erpEcologicalManagementDetailFieldsDtoList), JSON.toJSONString(omsResult.getData()));
-            return OmsResult.error(printDataResult.getMsg());
+            log.error("打印数据序列化失败, 请检查打印数据字段配置, fields={}, data={}", JSON.toJSONString(erpEcologicalManagementDetailFieldsDtoList), JSON.toJSONString(CommonResultBean.getData()));
+            return CommonResultBean.error(printDataResult.getMsg());
         }
         //处理打印通用逻辑, 如设置headList
         handlePrintData(printDataResult.getData());
-        return OmsResult.success(PrintDataQueryDto.builder()
+        return CommonResultBean.success(PrintDataQueryDto.builder()
             .businessOrderCode(printDataQueryReq.getBusinessOrderCode())
             .dataList(printDataResult.getData())
             .build());
@@ -88,7 +88,7 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
     /**
      * 组装展示字段及打印数据,并按配置序列化
      */
-    private OmsResult<JSONArray> serializePrintData(List<ErpEcologicalManagementDetailFieldsDto> fieldsList, Object data) {
+    private CommonResultBean<JSONArray> serializePrintData(List<ErpEcologicalManagementDetailFieldsDto> fieldsList, Object data) {
         //将字段按parentId分组
         Map<Long, List<ErpEcologicalManagementDetailFieldsDto>> parentIdAndFieldListMap = fieldsList.stream().collect(Collectors.groupingBy(ErpEcologicalManagementDetailFieldsDto::getParentId));
         //组装字段层级
@@ -110,7 +110,7 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
             SpelExpressionParser spelExpressionParser = new SpelExpressionParser();
             serializeField(spelExpressionParser, bizOrderList, topFieldMap);
         }
-        return OmsResult.success(bizOrderList);
+        return CommonResultBean.success(bizOrderList);
     }
 
     private static void serializeField(SpelExpressionParser spelExpressionParser, JSONArray currentBizOrderList
@@ -228,9 +228,9 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
         }
     }
 
-    private OmsResult<Object> tryInvokeExecutionMethod(String executionMethod, JSON req) {
+    private CommonResultBean<Object> tryInvokeExecutionMethod(String executionMethod, JSON req) {
         if (StringUtils.isEmpty(executionMethod)) {
-            return OmsResult.error("未查询到打印系统的业务单据注册配置的执行方法, 请联系技术人员配置");
+            return CommonResultBean.error("未查询到打印系统的业务单据注册配置的执行方法, 请联系技术人员配置");
         }
         if (executionMethod.startsWith(FilePrefixConstant.HTTP)) {
             return tryInvokeExecutionMethodByRemoteApi(executionMethod, req);
@@ -242,16 +242,16 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
     /**
      * executionMethod 可以是远程方法, 如"http://localhost:8080/oms/oms-order/queryTradeOrderGoods"
      */
-    private OmsResult<Object> tryInvokeExecutionMethodByRemoteApi(String executionMethod, JSON req) {
+    private CommonResultBean<Object> tryInvokeExecutionMethodByRemoteApi(String executionMethod, JSON req) {
         JSONObject result = restTemplateService.postForJavaType(executionMethod, req, new TypeReference<JSONObject>() {
         });
-        return OmsResult.success(result);
+        return CommonResultBean.success(result);
     }
 
     /**
      * executionMethod 也可以是本地service方法, 如"com.zczy.scm.oms.service.order.inter.TradeOrderQueryService.queryTradeOrderGoods"
      */
-    private OmsResult<Object> tryInvokeExecutionMethodByLocalService(String executionMethod, JSON req) {
+    private CommonResultBean<Object> tryInvokeExecutionMethodByLocalService(String executionMethod, JSON req) {
         try {
             log.info("执行打印系统业务单据注册配置的执行方法: {}", executionMethod);
             int lastIndexOfDot = executionMethod.lastIndexOf(".");
@@ -260,10 +260,10 @@ public class PrintBusinessTemplateAdminServiceImpl implements PrintBusinessTempl
             Class<?> serviceClass = Class.forName(executionClassName);
             Object serviceBean = applicationContext.getBean(serviceClass);
             log.info("执行打印系统业务单据注册配置的执行方法 serviceBean: {}", serviceBean.getClass());
-            return OmsResult.success(ReflectUtil.invoke(serviceClass, serviceBean, executionMethodName, req));
+            return CommonResultBean.success(ReflectUtil.invoke(serviceClass, serviceBean, executionMethodName, req));
         } catch (Exception e) {
             log.error("执行打印系统业务单据注册配置的执行方法失败", e);
-            return OmsResult.error("查询打印业务数据失败");
+            return CommonResultBean.error("查询打印业务数据失败");
         }
     }
 }
