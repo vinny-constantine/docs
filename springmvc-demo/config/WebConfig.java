@@ -47,13 +47,20 @@ public class WebConfig implements WebMvcConfigurer {
         SimpleModule module = new SimpleModule();
         module.addSerializer(Long.class, ToStringSerializer.instance);
         module.addSerializer(Long.TYPE, ToStringSerializer.instance);
-        module.addDeserializer(String.class, new StringWithoutSpaceDeserializer(String.class));
-        module.addSerializer(Date.class, ToStringSerializer.instance);
+//        module.addSerializer(Date.class, new DateSerializer(false, new SimpleDateFormat("yyyy-MM-ss")));
+        module.addDeserializer(Date.class, new JsonDeserializer<Date>() {
+            @Override
+            public Date deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
+                return DateUtil.parse(jsonParser.getValueAsString());
+            }
+        });
+        module.addDeserializer(String.class, StringDeserializer.instance);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.registerModule(module);
         mappingJackson2HttpMessageConverter.setObjectMapper(objectMapper);
         //设置中文编码格式
-        List<MediaType> list = new ArrayList<MediaType>();
-        list.add(MediaType.APPLICATION_JSON_UTF8);
+        List<MediaType> list = new ArrayList<>();
+        list.add(MediaType.APPLICATION_JSON);
         mappingJackson2HttpMessageConverter.setSupportedMediaTypes(list);
         return mappingJackson2HttpMessageConverter;
     }
